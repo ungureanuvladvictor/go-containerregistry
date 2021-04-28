@@ -80,14 +80,22 @@ func MultiWrite(m map[name.Reference]Taggable, options ...Option) (rerr error) {
 	for _, l := range blobs {
 		ls = append(ls, l)
 	}
-	scopes := scopesForUploadingImage(repo, ls)
-	tr, err := transport.NewWithContext(o.context, repo.Registry, o.auth, o.transport, scopes)
-	if err != nil {
-		return err
+
+	var client *http.Client
+	if o.client != nil {
+		client = o.client
+	} else {
+		scopes := scopesForUploadingImage(repo, ls)
+		tr, err := transport.NewWithContext(o.context, repo.Registry, o.auth, o.transport, scopes)
+		if err != nil {
+			return err
+		}
+		client = &http.Client{Transport: tr}
 	}
+
 	w := writer{
 		repo:       repo,
-		client:     &http.Client{Transport: tr},
+		client:     client,
 		context:    o.context,
 		updates:    o.updates,
 		lastUpdate: &v1.Update{},

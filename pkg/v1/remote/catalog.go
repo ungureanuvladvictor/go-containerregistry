@@ -81,10 +81,21 @@ func Catalog(ctx context.Context, target name.Registry, options ...Option) ([]st
 		return nil, err
 	}
 
-	scopes := []string{target.Scope(transport.PullScope)}
-	tr, err := transport.NewWithContext(o.context, target, o.auth, o.transport, scopes)
-	if err != nil {
-		return nil, err
+	var client *http.Client
+	if o.client != nil {
+		client = o.client
+	} else {
+		scopes := []string{target.Scope(transport.PullScope)}
+		tr, err := transport.NewWithContext(o.context, target, o.auth, o.transport, scopes)
+		if err != nil {
+			return nil, err
+		}
+		client = &http.Client{Transport: tr}
+	}
+
+	// WithContext overrides the ctx passed directly.
+	if o.context != context.Background() {
+		ctx = o.context
 	}
 
 	uri := &url.URL{
@@ -92,13 +103,6 @@ func Catalog(ctx context.Context, target name.Registry, options ...Option) ([]st
 		Host:     target.RegistryStr(),
 		Path:     "/v2/_catalog",
 		RawQuery: "n=10000",
-	}
-
-	client := http.Client{Transport: tr}
-
-	// WithContext overrides the ctx passed directly.
-	if o.context != context.Background() {
-		ctx = o.context
 	}
 
 	var (

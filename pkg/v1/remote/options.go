@@ -32,6 +32,7 @@ type options struct {
 	auth                           authn.Authenticator
 	keychain                       authn.Keychain
 	transport                      http.RoundTripper
+	client                         *http.Client
 	platform                       v1.Platform
 	context                        context.Context
 	jobs                           int
@@ -95,6 +96,13 @@ func makeOptions(target authn.Resource, opts ...Option) (*options, error) {
 func WithTransport(t http.RoundTripper) Option {
 	return func(o *options) error {
 		o.transport = t
+		return nil
+	}
+}
+
+func WithHTTPClient(c *http.Client) Option {
+	return func(o *options) error {
+		o.client = c
 		return nil
 	}
 }

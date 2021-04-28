@@ -218,13 +218,20 @@ type fetcher struct {
 }
 
 func makeFetcher(ref name.Reference, o *options) (*fetcher, error) {
-	tr, err := transport.NewWithContext(o.context, ref.Context().Registry, o.auth, o.transport, []string{ref.Scope(transport.PullScope)})
-	if err != nil {
-		return nil, err
+	var client *http.Client
+	if o.client != nil {
+		client = o.client
+	} else {
+		tr, err := transport.NewWithContext(o.context, ref.Context().Registry, o.auth, o.transport, []string{ref.Scope(transport.PullScope)})
+		if err != nil {
+			return nil, err
+		}
+		client = &http.Client{Transport: tr}
 	}
+
 	return &fetcher{
 		Ref:     ref,
-		Client:  &http.Client{Transport: tr},
+		Client:  client,
 		context: o.context,
 	}, nil
 }

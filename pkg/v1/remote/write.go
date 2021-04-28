@@ -68,14 +68,21 @@ func writeImage(ref name.Reference, img v1.Image, o *options, lastUpdate *v1.Upd
 	if err != nil {
 		return err
 	}
-	scopes := scopesForUploadingImage(ref.Context(), ls)
-	tr, err := transport.NewWithContext(o.context, ref.Context().Registry, o.auth, o.transport, scopes)
-	if err != nil {
-		return err
+	var client *http.Client
+	if o.client != nil {
+		client = o.client
+	} else {
+		scopes := scopesForUploadingImage(ref.Context(), ls)
+		tr, err := transport.NewWithContext(o.context, ref.Context().Registry, o.auth, o.transport, scopes)
+		if err != nil {
+			return err
+		}
+		client = &http.Client{Transport: tr}
 	}
+
 	w := writer{
 		repo:       ref.Context(),
-		client:     &http.Client{Transport: tr},
+		client:     client,
 		context:    o.context,
 		updates:    o.updates,
 		lastUpdate: lastUpdate,
@@ -669,14 +676,21 @@ func WriteIndex(ref name.Reference, ii v1.ImageIndex, options ...Option) (rerr e
 		return err
 	}
 
-	scopes := []string{ref.Scope(transport.PushScope)}
-	tr, err := transport.NewWithContext(o.context, ref.Context().Registry, o.auth, o.transport, scopes)
-	if err != nil {
-		return err
+	var client *http.Client
+	if o.client != nil {
+		client = o.client
+	} else {
+		scopes := []string{ref.Scope(transport.PushScope)}
+		tr, err := transport.NewWithContext(o.context, ref.Context().Registry, o.auth, o.transport, scopes)
+		if err != nil {
+			return err
+		}
+		client = &http.Client{Transport: tr}
 	}
+
 	w := writer{
 		repo:    ref.Context(),
-		client:  &http.Client{Transport: tr},
+		client:  client,
 		context: o.context,
 		updates: o.updates,
 	}
@@ -808,14 +822,22 @@ func WriteLayer(repo name.Repository, layer v1.Layer, options ...Option) (rerr e
 	if err != nil {
 		return err
 	}
-	scopes := scopesForUploadingImage(repo, []v1.Layer{layer})
-	tr, err := transport.NewWithContext(o.context, repo.Registry, o.auth, o.transport, scopes)
-	if err != nil {
-		return err
+
+	var client *http.Client
+	if o.client != nil {
+		client = o.client
+	} else {
+		scopes := scopesForUploadingImage(repo, []v1.Layer{layer})
+		tr, err := transport.NewWithContext(o.context, repo.Registry, o.auth, o.transport, scopes)
+		if err != nil {
+			return err
+		}
+		client = &http.Client{Transport: tr}
 	}
+
 	w := writer{
 		repo:    repo,
-		client:  &http.Client{Transport: tr},
+		client:  client,
 		context: o.context,
 		updates: o.updates,
 	}
@@ -868,21 +890,29 @@ func Put(ref name.Reference, t Taggable, options ...Option) error {
 	if err != nil {
 		return err
 	}
-	scopes := []string{ref.Scope(transport.PushScope)}
 
-	// TODO: This *always* does a token exchange. For some registries,
-	// that's pretty slow. Some ideas;
-	// * Tag could take a list of tags.
-	// * Allow callers to pass in a transport.Transport, typecheck
-	//   it to allow them to reuse the transport across multiple calls.
-	// * WithTag option to do multiple manifest PUTs in commitManifest.
-	tr, err := transport.NewWithContext(o.context, ref.Context().Registry, o.auth, o.transport, scopes)
-	if err != nil {
-		return err
+	var client *http.Client
+	if o.client != nil {
+		client = o.client
+	} else {
+		scopes := []string{ref.Scope(transport.PushScope)}
+
+		// TODO: This *always* does a token exchange. For some registries,
+		// that's pretty slow. Some ideas;
+		// * Tag could take a list of tags.
+		// * Allow callers to pass in a transport.Transport, typecheck
+		//   it to allow them to reuse the transport across multiple calls.
+		// * WithTag option to do multiple manifest PUTs in commitManifest.
+		tr, err := transport.NewWithContext(o.context, ref.Context().Registry, o.auth, o.transport, scopes)
+		if err != nil {
+			return err
+		}
+		client = &http.Client{Transport: tr}
 	}
+
 	w := writer{
 		repo:    ref.Context(),
-		client:  &http.Client{Transport: tr},
+		client:  client,
 		context: o.context,
 	}
 

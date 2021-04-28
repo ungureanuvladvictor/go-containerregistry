@@ -43,10 +43,17 @@ func ListWithContext(ctx context.Context, repo name.Repository, options ...Optio
 	if err != nil {
 		return nil, err
 	}
-	scopes := []string{repo.Scope(transport.PullScope)}
-	tr, err := transport.NewWithContext(o.context, repo.Registry, o.auth, o.transport, scopes)
-	if err != nil {
-		return nil, err
+
+	var client *http.Client
+	if o.client != nil {
+		client = o.client
+	} else {
+		scopes := []string{repo.Scope(transport.PullScope)}
+		tr, err := transport.NewWithContext(o.context, repo.Registry, o.auth, o.transport, scopes)
+		if err != nil {
+			return nil, err
+		}
+		client = &http.Client{Transport: tr}
 	}
 
 	uri := &url.URL{
@@ -65,7 +72,6 @@ func ListWithContext(ctx context.Context, repo name.Repository, options ...Optio
 		ctx = o.context
 	}
 
-	client := http.Client{Transport: tr}
 	tagList := []string{}
 	parsed := tags{}
 
