@@ -30,6 +30,7 @@ type options struct {
 	insecure        bool // secure by default
 	defaultRegistry string
 	defaultTag      string
+	scheme          string
 }
 
 func makeOptions(opts ...Option) options {
@@ -79,5 +80,11 @@ func WithDefaultRegistry(r string) Option {
 func WithDefaultTag(t string) Option {
 	return func(opts *options) {
 		opts.defaultTag = t
+	}
+}
+
+func WithScheme(scheme string) Option {
+	return func(opts *options) {
+		opts.scheme = scheme
 	}
 }

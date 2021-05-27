@@ -34,6 +34,7 @@ var reipv6Loopback = regexp.MustCompile(regexp.QuoteMeta("::1"))
 type Registry struct {
 	insecure bool
 	registry string
+	scheme   string
 }
 
 // RegistryStr returns the registry component of the Registry.
@@ -73,6 +74,9 @@ func (r Registry) isRFC1918() bool {
 
 // Scheme returns https scheme for all the endpoints except localhost or when explicitly defined.
 func (r Registry) Scheme() string {
+	if r.scheme != "" {
+		return r.scheme
+	}
 	if r.insecure {
 		return "http"
 	}
@@ -124,7 +128,7 @@ func NewRegistry(name string, opts ...Option) (Registry, error) {
 		name = DefaultRegistry
 	}
 
-	return Registry{registry: name, insecure: opt.insecure}, nil
+	return Registry{registry: name, insecure: opt.insecure, scheme: opt.scheme}, nil
 }
 
 // NewInsecureRegistry returns an Insecure Registry based on the given name.
