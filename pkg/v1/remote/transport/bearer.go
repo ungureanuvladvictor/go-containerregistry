@@ -106,6 +106,8 @@ func (bt *bearerTransport) RoundTrip(in *http.Request) (*http.Response, error) {
 			}
 		}
 
+		logs.Debug.Printf("Using scopes %+v", bt.scopes)
+
 		// TODO(jonjohnsonjr): Teach transport.Error about "error" and "error_description" from challenge.
 
 		// Retry the request to attempt to get a valid token.
