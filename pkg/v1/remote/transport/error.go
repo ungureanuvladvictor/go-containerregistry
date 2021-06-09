@@ -21,6 +21,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/google/go-containerregistry/pkg/logs"
 )
 
 // The set of query string keys that we expect to send as part of the registry
@@ -181,6 +183,8 @@ func CheckError(resp *http.Response, codes ...int) error {
 	if err != nil {
 		return err
 	}
+
+	logs.Debug.Printf("\n\nError body: %s\n\n", string(b))
 
 	// https://github.com/docker/distribution/blob/master/docs/spec/api.md#errors
 	structuredError := &Error{}
